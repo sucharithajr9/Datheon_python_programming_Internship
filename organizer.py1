@@ -1,0 +1,83 @@
+import os
+import shutil
+from pathlib import Path
+
+FILE_TYPES = {
+    ".pdf": "Documents",
+    ".docx": "Documents",
+    ".doc": "Documents",
+    ".txt": "Documents",
+    ".jpg": "Images",
+    ".jpeg": "Images",
+    ".png": "Images",
+    ".gif": "Images",
+    ".mp4": "Videos",
+    ".mkv": "Videos",
+    ".mp3": "Audio",
+    ".wav": "Audio",
+    ".zip": "Archives",
+    ".rar": "Archives",
+    ".py": "Code",
+    ".java": "Code",
+    ".c": "Code",
+    ".cpp": "Code"
+}
+
+
+def organize_files(folder_path):
+    folder = Path(folder_path)
+
+    if not folder.exists() or not folder.is_dir():
+        print("Invalid folder path!")
+        return
+
+    moved = 0
+    skipped = 0
+
+    for file in list(folder.iterdir()):
+
+        if not file.is_file():
+            continue
+
+        category = FILE_TYPES.get(file.suffix.lower(), "Others")
+
+        destination_folder = folder / category
+
+        try:
+            destination_folder.mkdir(exist_ok=True)
+
+            destination = destination_folder / file.name
+            count = 1
+
+            while destination.exists():
+                destination = destination_folder / (
+                    f"{file.stem}_{count}{file.suffix}"
+                )
+                count += 1
+
+            shutil.move(str(file), str(destination))
+
+            print(f"Moved: {file.name} -> {category}")
+            moved += 1
+
+        except (PermissionError, OSError, shutil.Error) as error:
+            print(f"Error: {file.name} - {error}")
+            skipped += 1
+
+    print("\n===== ORGANIZATION SUMMARY =====")
+    print("Files moved:", moved)
+    print("Files skipped:", skipped)
+    print("Organization completed!")
+
+
+if __name__ == "__main__":
+
+    desktop = Path.home() / "Desktop"
+
+    # Use the actual folder, not the shortcut
+    test_folder = desktop / "New folder"
+
+    print("===== AUTOMATED FILE ORGANIZER =====")
+    print("Selected folder:", test_folder)
+
+    organize_files(test_folder)
